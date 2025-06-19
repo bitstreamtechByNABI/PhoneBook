@@ -1,0 +1,6 @@
+otp:
+  login:
+    success:
+      status: 1
+    failure:
+      status: 0

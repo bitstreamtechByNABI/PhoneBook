@@ -7,5 +7,7 @@ import contact.phone.nabi.user.model.PhonebookUser;
 public interface PhonebookUserRepository extends JpaRepository<PhonebookUser, Long> {
 	
 	   boolean existsByPhoneNumber(String phoneNumber);
+	   
+	  
 
 }

@@ -34,6 +34,7 @@ public class OtpService {
 		    otpStorage.put(email, otp.toString());
 		    return otp.toString();
 		}
+	 
 
 	 public boolean verifyOtp(String email, String inputOtp) {
 		    if (otpStorage.containsKey(email) && otpStorage.get(email).equals(inputOtp)) {

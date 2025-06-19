@@ -30,6 +30,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	 @Query(value = "SELECT user_status FROM users WHERE user_id = :userId", nativeQuery = true)
 	 Boolean findUserStatusByUserId(@Param("userId") String userId);
 
+		@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM users WHERE user_name = :userName", nativeQuery = true)
+		Boolean existsUserName(@Param("userName") String userName);
+		
+		
+
+
+
+
 	
 	
 	

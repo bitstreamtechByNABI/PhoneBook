@@ -16,5 +16,5 @@ public class OtpLoginResponse {
     private String exceptionOccured;
     private String message;
     private String exceptionMessage;
-    private int status;
+    private Integer status;
 }

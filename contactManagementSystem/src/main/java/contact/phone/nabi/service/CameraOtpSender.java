@@ -3,8 +3,6 @@ package contact.phone.nabi.service;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.List;
-import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -13,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.sarxos.webcam.Webcam;
 
+import contact.phone.nabi.repository.OtpLogRepo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -29,16 +28,18 @@ public class CameraOtpSender {
 	@Autowired
 	 private final OtpService otpService;
 	
+	@Autowired
+	private OtpLogRepo otpLogRepo;
+	
 	 public void capturePhotoAndSendOtp(String email) {
-		    String otp = otpService.generateOtp(email); 
+//		    String otp = otpService.generateOtp(email);
+		    String otp = otpLogRepo.getotpByEmail(email);
+		    System.out.println("OTP : - "+otp);
 		 
 	        try {
 	            // Open camera
 	            Webcam webcam = Webcam.getDefault();
 	            Dimension[] sizes = webcam.getViewSizes();
-	            for (Dimension size : sizes) {
-	                System.out.println("Supported size: " + size);
-	            }
 	            webcam.setViewSize(new Dimension(640, 480));
 	            webcam.open();
 
@@ -47,8 +48,6 @@ public class CameraOtpSender {
 	            File photoFile = new File("otp_photo.jpg");
 	            ImageIO.write(image, "JPG", photoFile);
 	            webcam.close();
-
-	            // Send email with photo
 	            emailService.sendOtpEmail(email, otp, photoFile);
 
 	        } catch (Exception e) {

@@ -32,8 +32,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 		@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM users WHERE user_name = :userName", nativeQuery = true)
 		Boolean existsUserName(@Param("userName") String userName);
-		
-		
+
+		@Query(value = "SELECT user_name FROM users WHERE email = :toEmail", nativeQuery = true)
+		String getUserName(String toEmail);
+
+		@Query(value = "SELECT otp FROM otp_logs WHERE email = :email ORDER BY created_on DESC LIMIT 1", nativeQuery = true)
+		String getOtpByEmail(@Param("email") String email);
+
 
 
 

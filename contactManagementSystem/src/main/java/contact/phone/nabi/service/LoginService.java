@@ -91,7 +91,7 @@ public class LoginService {
 
         User user = userRepository.findByUserName(username);
         String userId = user != null ? String.valueOf(user.getUserId()) : "UNKNOWN";
-        userService.logOtpEvent(userId, username, email, otp, httpRequest);
+        otpService.logOtpEvent(userId, username, email, otp, httpRequest);
 
         response.setStatus(otpHandler.getSuccessStatus());
         response.setResult(Collections.singletonList(Map.of("otpStatus", "OTP sent to registered email")));

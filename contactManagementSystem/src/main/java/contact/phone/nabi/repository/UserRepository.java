@@ -38,15 +38,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 		@Query(value = "SELECT otp FROM otp_logs WHERE email = :email ORDER BY created_on DESC LIMIT 1", nativeQuery = true)
 		String getOtpByEmail(@Param("email") String email);
+		
+		
+		@Query(value = "SELECT user_status FROM users WHERE user_id = :userId", nativeQuery = true)
+		String findUserStatusByUserIdStr(@Param("userId") String userId);
+
+		
+		@Query(value = "SELECT user_status FROM users WHERE user_id = :userId", nativeQuery = true)
+		Integer findUserStatusByUserIdInt(@Param("userId") String userId);
+
+		
+		
+
+	
 
 
 
-
-
-	
-	
-	
-	
-	
 
 }

@@ -1,16 +1,12 @@
 package contact.phone.nabi.service.impl;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,15 +20,12 @@ import contact.phone.nabi.repository.OtpLogRepo;
 import contact.phone.nabi.repository.PhonebookUserRepository;
 import contact.phone.nabi.repository.UserRepository;
 import contact.phone.nabi.service.UserService;
-import contact.phone.nabi.user.model.OtpLog;
 import contact.phone.nabi.user.model.PhoneBookRequest;
 import contact.phone.nabi.user.model.PhonebookUser;
 import contact.phone.nabi.user.model.User;
 import contact.phone.nabi.user.model.UserRegistrationRequest;
 import contact.phone.nabi.user.model.UserResult;
 import contact.phone.nabi.user.response.model.UserRegistrationResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -86,7 +79,7 @@ public class UserServiceImpl implements UserService {
         // Validate phone
         String phone = request.getPhone();
         if (phone == null || phone.trim().isEmpty()) {
-            user.setPhone(null); // will be caught as missing field later
+            user.setPhone(null); 
         } else {
             phone = phone.trim();
             if (phoneDigitsPattern.matcher(phone).matches()) {
@@ -167,9 +160,7 @@ public class UserServiceImpl implements UserService {
         do {
             userId = generateAlphaNumericId(6);
         } while (userRepository.existsByUserId(userId));
-
         user.setUserId(userId);
-
         // Encode password before saving
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
@@ -191,7 +182,6 @@ public class UserServiceImpl implements UserService {
         UserResult result = new UserResult();
         result.setUserId(userId);
         result.setMessage(message);
-
         UserRegistrationResponse response = new UserRegistrationResponse();
         response.setResult(List.of(result));
         response.setExceptionOccured("N");
@@ -220,19 +210,11 @@ public class UserServiceImpl implements UserService {
         System.out.println("UserName "+username+"password"+ rawPassword);
         // Fetch encoded password from DB
         String encodedPassword = userRepository.getPasswordHash(username);
-        
-        System.out.println("encodedPassword "+encodedPassword);
-
-        // Null/empty check
         if (encodedPassword == null || encodedPassword.isEmpty()) {
             LOGGER.warn("No password found for username: {}", username);
             return false;
         }
-
-        // BCrypt match check
         boolean matches = passwordEncoder.matches(rawPassword, encodedPassword);
-
-        // Logging based on result
         if (!matches) {
             LOGGER.warn("Password mismatch for username: {}", username);
         } else {
@@ -256,9 +238,7 @@ public class UserServiceImpl implements UserService {
         LOGGER.info("Email fetched successfully for username: {}", username);
         return user.getEmail();
     }
-   
-    
-   
+
     public String getGreetingBasedOnTime() {
         LocalTime currentTime = LocalTime.now();
 
@@ -274,13 +254,11 @@ public class UserServiceImpl implements UserService {
     }
 
   
-  
     public PhonebookUser saveUserIfActive(PhoneBookRequest request) {
         String userId = request.getUserId();
         Boolean userStatus = userRepository.findUserStatusByUserId(userId);
 
         if (!Boolean.TRUE.equals(userStatus)) {
-            System.out.println("User is INACTIVE or not found");
             throw new IllegalStateException("User is INACTIVE or not found in the system");
         }
 
@@ -298,8 +276,5 @@ public class UserServiceImpl implements UserService {
 
         return phonebookUserRepository.save(user);
     }
-
-
-
 
 }

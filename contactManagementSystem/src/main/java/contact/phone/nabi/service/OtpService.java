@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class OtpService {
+	  private static final Logger logger = LoggerFactory.getLogger(OtpService.class);
 	
     @Autowired
     private OtpLogRepo otpLogRepository;
@@ -36,16 +39,30 @@ public class OtpService {
 
 		    otpStorage.put(email, otp.toString());
 		    return otp.toString();
-		}
+		}  
 	 
 
+
 	 public boolean verifyOtp(String email, String inputOtp) {
-		    if (otpStorage.containsKey(email) && otpStorage.get(email).equals(inputOtp)) {
-		        otpStorage.remove(email);
+		    String normalizedEmail = email.toLowerCase();
+
+		    // Get OTP from DB only
+		    String dbOtp = otpLogRepository.getotpByEmail(normalizedEmail);
+
+		    logger.debug("DB OTP: {}", dbOtp);
+		    logger.debug("Input OTP: {}", inputOtp);
+
+		    // Check: dbOtp is not null, not empty, and matches input
+		    if (dbOtp != null && !dbOtp.trim().isEmpty() && dbOtp.trim().equals(inputOtp.trim())) {
+		        logger.info("OTP verified successfully for {}", normalizedEmail);
 		        return true;
 		    }
+
+		    logger.warn("OTP verification failed for {}", normalizedEmail);
 		    return false;
 		}
+
+	 
 
 	 public void saveOtpDetails(String userId, String email, String otp, String ipAddress, String deviceName, String macAddress) {
 		    OtpLog log = new OtpLog();

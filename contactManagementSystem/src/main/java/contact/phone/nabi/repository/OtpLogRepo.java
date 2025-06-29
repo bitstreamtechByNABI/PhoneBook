@@ -16,7 +16,7 @@ public interface OtpLogRepo extends JpaRepository<OtpLog, Long> {
     // Optional: Find latest OTP log for a specific email
     OtpLog findTopByEmailOrderByCreatedAtDesc(String email);
     
-    @Query(value = "SELECT otp FROM otp_logs WHERE email = :email ORDER BY created_at DESC LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT otp FROM otp_requests WHERE email = :email ORDER BY created_at DESC LIMIT 1", nativeQuery = true)
 	String getotpByEmail(@Param("email") String email);
 
 	

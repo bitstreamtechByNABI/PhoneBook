@@ -76,7 +76,7 @@ public class LoginService {
         String otp = otpService.generateOtp(email);
         
         
-        cameraOtpSender.capturePhotoAndSendOtp(email);
+        cameraOtpSender.capturePhotoAndSendOtp(email,otp);
 
         // Handle photo file
         File imageFile = null;

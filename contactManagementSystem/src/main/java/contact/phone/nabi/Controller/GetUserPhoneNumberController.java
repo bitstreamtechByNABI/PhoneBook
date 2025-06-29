@@ -25,9 +25,7 @@ public class GetUserPhoneNumberController {
 	
 	@Autowired
 	private UserServicePhoneNumber userService;
-	
-	
-	
+		
 	 @GetMapping("/get-user-details")
 	    public ResponseEntity<ApiResponsePhoneNumber> getUserDetails(@RequestParam("userId") String userId) {
 	        try {

@@ -127,7 +127,7 @@ public class EmailService {
 		                + "<p>To proceed with your verification, please use the One-Time Password (OTP) provided below:</p>"
 		                + "<p style=\"font-size:18px;\"><strong>🔐 OTP: " + otp + "</strong></p>"
 		                + "<p><em>(This is a sample – replace with your actual generated OTP)</em></p>"
-		                + "<p style=\"color: #FFD700;\">Please do not share this OTP with anyone. This code will expire in 10 minutes.</p>"
+		                + "<p style=\"color: #FF0000;\">Please do not share this OTP with anyone. This code will expire in 10 minutes.</p>"
 		                + "<p>If you did not request this verification, please ignore this email or contact our support team immediately.</p>"
 		                + "<br/>"
 		                + "<p>Best regards,<br/>PhonebookNotes Team</p>";

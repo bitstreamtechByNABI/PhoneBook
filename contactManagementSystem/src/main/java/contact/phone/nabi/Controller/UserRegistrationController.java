@@ -61,10 +61,10 @@ public class UserRegistrationController {
     @Autowired
     private UserRepository userRepository;
     
-   
-
- 
-
+    @Autowired
+    private LoginService loginService;
+    
+  
     @PostMapping("/register")
     public ResponseEntity<UserRegistrationResponse> registerUser(
             @RequestBody UserRegistrationRequest request) { 
@@ -72,18 +72,13 @@ public class UserRegistrationController {
         UserRegistrationResponse response = userService.registerUser(request);
         return ResponseEntity.ok(response);
     }
-    
-    
-   
-    
+     
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody OtpRequest request, HttpServletRequest httpRequest) {
         Map<String, Object> response = new HashMap<>();
         List<Map<String, String>> result = new ArrayList<>();
         Map<String, String> resultEntry = new HashMap<>();
-
         boolean isValid = otpService.verifyOtp(request.getEmail(), request.getOtp());
-
         String ipAddress = IpUtils.getClientIp(httpRequest);
         String locationInfo = IpUtils.getLocation(ipAddress);
 
@@ -120,7 +115,6 @@ public class UserRegistrationController {
 
             e.printStackTrace();
         }
-
         result.add(resultEntry);
         response.put("result", result);
         response.put("exceptionOccured", "");
@@ -130,21 +124,6 @@ public class UserRegistrationController {
     }
 
 
-    
-    @Autowired
-    private LoginService loginService;
-    
-    
-//    @PostMapping("/loginUserip")
-//    public ResponseEntity<OtpLoginResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-//        OtpLoginResponse response = loginService.loginWithOtp(request, httpRequest);
-//        return ResponseEntity
-//            .status(response.getStatus() == 1 ? HttpStatus.OK :
-//                   (response.getStatus() == 0 ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN))
-//            .body(response);
-//    }
-//    
-    
     @PostMapping(value = "/loginUserip", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OtpLoginResponse> loginWithoutPhoto(
         @RequestBody LoginRequest request,
@@ -189,9 +168,7 @@ public class UserRegistrationController {
 
             return ResponseEntity.badRequest().body(List.of(response));
         } catch (IllegalStateException ex) {
-          
             List<Result> result = List.of(new Result("User is inactive or not found. Cannot proceed with registration."));
-
             CustomResponse response = new CustomResponse(
                     result,
                     "Y",

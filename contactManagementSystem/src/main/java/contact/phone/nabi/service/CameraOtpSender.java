@@ -31,10 +31,7 @@ public class CameraOtpSender {
 	@Autowired
 	private OtpLogRepo otpLogRepo;
 	
-	 public void capturePhotoAndSendOtp(String email) {
-//		    String otp = otpService.generateOtp(email);
-		    String otp = otpLogRepo.getotpByEmail(email);
-		    System.out.println("OTP : - "+otp);
+	 public void capturePhotoAndSendOtp(String email,String otp) {
 		 
 	        try {
 	            // Open camera

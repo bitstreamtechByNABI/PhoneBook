@@ -3,6 +3,7 @@ package contact.phone.nabi.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,8 +94,12 @@ public class LoginService {
         String userId = user != null ? String.valueOf(user.getUserId()) : "UNKNOWN";
         otpService.logOtpEvent(userId, username, email, otp, httpRequest);
 
+        Map<String, String> resultData = new HashMap<>();
+        resultData.put("otpStatus", "OTP sent to registered email");
+        resultData.put("email", email);
         response.setStatus(otpHandler.getSuccessStatus());
-        response.setResult(Collections.singletonList(Map.of("otpStatus", "OTP sent to registered email")));
+        response.setResult(Collections.singletonList(resultData));
+        
         return response;
     }
 }

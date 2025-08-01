@@ -1,6 +1,8 @@
 package contact.phone.nabi.user.model;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +25,8 @@ public class UserRegistrationRequest {
 	private String dob;
 	private String gender;
 	private Address address;
-	private ArrayList<SecurityQuestion> securityQuestions;
+	@JsonDeserialize(contentAs = SecurityQuestion.class)
+	private List<SecurityQuestion> securityQuestions;
+
 
 }

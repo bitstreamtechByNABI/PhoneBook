@@ -118,5 +118,54 @@ public class NotebookService {
 	    }
 
 
+	    public boolean isUserExists(String userId) {
+	        return userRepository.existsByUserId(userId);
+	    }
+
+
+	    public boolean isUserActive(String userId) {
+	        Boolean status = userRepository.findUserStatusByUserId(userId);
+	        return status != null && status; 
+	    }
+
+
+
+	    public List<NotebookResponseDTO> getNotesByUser(String userId) {
+	        // 1. Check if user exists
+	        boolean userExists = userRepository.existsByUserId(userId);
+	        if (!userExists) {
+	            throw new NotebookFetchException("User not found", null);
+	        }
+
+	        // 2. Check if user is active
+	        Boolean status = userRepository.findUserStatusByUserId(userId);
+	        if (status == null || !status) {
+	            throw new NotebookFetchException("User is inactive", null);
+	        }
+
+	        // 3. Fetch notes by userId ordered by createDate descending
+	        List<NotebookEntry> entries = notebookRepository.findByUserIdOrderByCreateDateDesc(userId);
+
+	        // 4. Filter ACTIVE notes and decrypt content
+	        return entries.stream()
+	            .filter(entry -> "ACTIVE".equalsIgnoreCase(entry.getNoteStatus()))
+	            .map(entry -> {
+	                String decryptedContent;
+	                try {
+	                    decryptedContent = EncryptionUtil.decrypt(entry.getNoteBookContent());
+	                } catch (Exception e) {
+	                    decryptedContent = "**Decryption Failed**";
+	                }
+
+	                return new NotebookResponseDTO(
+	                    entry.getUserId(),
+	                    entry.getNoteStatus(),
+	                    entry.getNoteBookName(),
+	                    decryptedContent
+	                );
+	            })
+	            .collect(Collectors.toList());
+	    }
+
 
 }

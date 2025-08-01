@@ -15,5 +15,6 @@ public class UserResult {
 	 private String userId;
 	 private String message;
 	 private String phone;
+	 private String email;
 
 }

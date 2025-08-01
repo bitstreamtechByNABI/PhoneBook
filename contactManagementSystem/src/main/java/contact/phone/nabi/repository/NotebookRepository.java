@@ -1,5 +1,6 @@
 package contact.phone.nabi.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -15,5 +16,9 @@ public interface NotebookRepository extends JpaRepository<NotebookEntry, Integer
 	Page<NotebookEntry> findByUserId(String userId, Pageable pageable);
 
 	Page<NotebookEntry> findByNoteBookNameContainingIgnoreCase(String noteBookName, Pageable pageable);
+	List<NotebookEntry> findByUserId(String userId);
+
+	List<NotebookEntry> findByUserIdOrderByCreateDateDesc(String userId);
+
 
 }

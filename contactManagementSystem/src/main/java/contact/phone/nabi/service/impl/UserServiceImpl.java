@@ -65,58 +65,51 @@ public class UserServiceImpl implements UserService {
                 user.setDob(null);
             }
         } catch (DateTimeParseException e) {
-            return buildResponse(null, "Invalid date format for dob. Expected format: yyyy-MM-dd");
+            return buildErrorResponse("Invalid date format for dob. Expected format: yyyy-MM-dd");
         }
 
         // Regex patterns
         Pattern phoneDigitsPattern = Pattern.compile("^[6-9]\\d{9}$");
-        Pattern phoneAlphaNumPattern = Pattern.compile("^[a-zA-Z0-9]{6,9}$"); // allow only alphanumeric, 6-9 length, no special chars
-        Pattern emailPattern = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$"); // basic email pattern
-
-        // Emoji and special char check (only letters and digits)
+        Pattern phoneAlphaNumPattern = Pattern.compile("^[a-zA-Z0-9]{6,9}$");
+        Pattern emailPattern = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$");
         Pattern noSpecialCharPattern = Pattern.compile("^[\\p{Alnum}]+$");
 
         // Validate phone
         String phone = request.getPhone();
         if (phone == null || phone.trim().isEmpty()) {
-            user.setPhone(null); 
+            user.setPhone(null);
         } else {
             phone = phone.trim();
-            if (phoneDigitsPattern.matcher(phone).matches()) {
-                user.setPhone(phone);
-            } else if (phoneAlphaNumPattern.matcher(phone).matches()) {
+            if (phoneDigitsPattern.matcher(phone).matches() || phoneAlphaNumPattern.matcher(phone).matches()) {
                 user.setPhone(phone);
             } else {
-                return buildResponse(null,
-                    "Invalid phone number. Must be exactly 10 digits or alphanumeric 6-9 characters without special characters or emojis.");
+                return buildErrorResponse("Invalid phone number. Must be exactly 10 digits or alphanumeric 6-9 characters without special characters or emojis.");
             }
         }
 
         // Validate email
         String email = request.getEmail();
         if (email == null || email.trim().isEmpty()) {
-            // will be caught later as missing field
             user.setEmail(email);
         } else {
             email = email.trim();
-            Matcher emailMatcher = emailPattern.matcher(email);
-            if (!emailMatcher.matches()) {
-                return buildResponse(null, "Invalid email format.");
+            if (!emailPattern.matcher(email).matches()) {
+                return buildErrorResponse("Invalid email format.");
             }
             user.setEmail(email);
         }
 
-   
+        // Validate username
         String userName = request.getUserName();
         if (userName != null && !userName.trim().isEmpty()) {
             userName = userName.trim();
             if (!noSpecialCharPattern.matcher(userName).matches()) {
-                return buildResponse(null, "Username must not contain special characters or emojis.");
+                return buildErrorResponse("Username must not contain special characters or emojis.");
             }
             user.setUserName(userName);
         }
 
-        // Validate required fields
+        // Check required fields
         List<String> missingFields = new ArrayList<>();
 
         if (user.getFirstName() == null || user.getFirstName().trim().isEmpty())
@@ -141,41 +134,69 @@ public class UserServiceImpl implements UserService {
             missingFields.add("userName");
 
         if (!missingFields.isEmpty()) {
-            return buildResponse(null, "Error: Missing required fields: " + String.join(", ", missingFields));
+            return buildErrorResponse("Missing required fields: " + String.join(", ", missingFields));
         }
 
-        // Check duplicates
+        // Check for duplicates
         if (userRepository.existsByUserName(user.getUserName())) {
-            return buildResponse(null, "Username is already taken");
+            return buildErrorResponse("Username is already taken");
         }
         if (userRepository.existsByPhone(user.getPhone())) {
-            return buildResponse(null, "Phone is already taken");
+            return buildErrorResponse("Phone is already taken");
         }
         if (userRepository.existsByEmail(user.getEmail())) {
-            return buildResponse(null, "Email is already registered");
+            return buildErrorResponse("Email is already registered");
         }
 
-        // Generate unique 6-digit numeric userId
+        // Generate unique 6-digit userId
         String userId;
         do {
             userId = generateAlphaNumericId(6);
         } while (userRepository.existsByUserId(userId));
         user.setUserId(userId);
-        // Encode password before saving
+
+        // Encode password
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         LOGGER.info("Registering user with username: {}, email: {}, encodedPassword: {}, phone: {}, dob: {}, gender: {}",
-                user.getUserName(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getPhone(),
-                user.getDob(),
-                user.getGender());
+                user.getUserName(), user.getEmail(), user.getPassword(),
+                user.getPhone(), user.getDob(), user.getGender());
 
+        // Save user
         userRepository.save(user);
 
-        return buildResponse(user.getUserId(), "User registered successfully");
+        return buildSuccessResponse(user.getUserId(), "User registered successfully");
     }
+
+    private UserRegistrationResponse buildErrorResponse(String errorMessage) {
+        UserResult result = new UserResult();
+        result.setMessage("Error: " + errorMessage);
+
+        UserRegistrationResponse response = new UserRegistrationResponse();
+        response.setResult(List.of(result));
+        response.setExceptionOccured("Y");
+        response.setExceptionMessage(errorMessage);
+        response.setStatus(400);
+        response.setMessage("failure");
+
+        return response;
+    }
+
+    private UserRegistrationResponse buildSuccessResponse(String userId, String message) {
+        UserResult result = new UserResult();
+        result.setUserId(userId);
+        result.setMessage(message);
+
+        UserRegistrationResponse response = new UserRegistrationResponse();
+        response.setResult(List.of(result));
+        response.setExceptionOccured("N");
+        response.setExceptionMessage("N");
+        response.setStatus(200);
+        response.setMessage("success");
+
+        return response;
+    }
+
 
     // Helper method to build a consistent response object
     private UserRegistrationResponse buildResponse(String userId, String message) {

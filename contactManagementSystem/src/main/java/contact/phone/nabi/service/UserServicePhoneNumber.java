@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-
+import java.util.Base64;
 import contact.phone.nabi.repository.CommanRepo;
 import contact.phone.nabi.user.model.UserResponse;
 
@@ -21,6 +21,8 @@ public class UserServicePhoneNumber {
 
 	
 
+
+
 	public List<UserResponse> getUsersByUserId(String userId) {
 	    List<UserResponse> users = new ArrayList<>();
 
@@ -29,7 +31,7 @@ public class UserServicePhoneNumber {
 
 	        if (rawResults == null || rawResults.isEmpty()) {
 	            logger.warn("No user data found for userId: {}", userId);
-	            return users; // return empty list
+	            return users;
 	        }
 
 	        for (Object[] row : rawResults) {
@@ -38,17 +40,21 @@ public class UserServicePhoneNumber {
 	            String lastName = row[2] != null ? row[2].toString() : "";
 	            String phoneNumber = row[3] != null ? row[3].toString() : "";
 
-	            users.add(new UserResponse(firstName, lastName, email, phoneNumber));
+	            String base64Image = "";
+	            if (row[4] != null && row[4] instanceof byte[]) {
+	                byte[] imageBytes = (byte[]) row[4];
+	                base64Image = Base64.getEncoder().encodeToString(imageBytes);
+	            }
+
+	            users.add(new UserResponse(firstName, lastName, email, phoneNumber, base64Image));
 	        }
 
 	    } catch (DataAccessException dae) {
 	        logger.error("Database access error for userId {}: {}", userId, dae.getMessage(), dae);
 	        throw new RuntimeException("Database error occurred. Please try again later.");
-
 	    } catch (NullPointerException npe) {
 	        logger.error("Null pointer exception while processing userId {}: {}", userId, npe.getMessage(), npe);
 	        throw new RuntimeException("Unexpected error while processing data.");
-
 	    } catch (Exception e) {
 	        logger.error("Unhandled exception for userId {}: {}", userId, e.getMessage(), e);
 	        throw new RuntimeException("Internal server error. Please try again.");
@@ -57,6 +63,42 @@ public class UserServicePhoneNumber {
 	    return users;
 	}
 
+
+
+//	public List<UserResponse> getUsersByUserId(String userId) {
+//	    List<UserResponse> users = new ArrayList<>();
+//
+//	    try {
+//	        List<Object[]> rawResults = phonebookUserRepository.findUserDetailsByUserId(userId);
+//
+//	        if (rawResults == null || rawResults.isEmpty()) {
+//	            logger.warn("No user data found for userId: {}", userId);
+//	            return users;
+//	        }
+//
+//	        for (Object[] row : rawResults) {
+//	            String email = row[0] != null ? row[0].toString() : "";
+//	            String firstName = row[1] != null ? row[1].toString() : "";
+//	            String lastName = row[2] != null ? row[2].toString() : "";
+//	            String phoneNumber = row[3] != null ? row[3].toString() : "";
+//
+//	            // Optional: byte[] image = (byte[]) row[4]; // if you still want it
+//	            String userIdForImage = row[4] != null ? row[4].toString() : null;
+//
+//	            String imageUrl = (userIdForImage != null)
+//	                ? "http://localhost:5959/contact/image/" + userIdForImage
+//	                : null;
+//
+//	            users.add(new UserResponse(firstName, lastName, email, phoneNumber, imageUrl));
+//	        }
+//
+//	    } catch (Exception e) {
+//	        logger.error("Exception: {}", e.getMessage(), e);
+//	        throw new RuntimeException("Internal server error.");
+//	    }
+//
+//	    return users;
+//	}
 
 
 }

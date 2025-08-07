@@ -12,6 +12,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -45,9 +46,17 @@ public class PhonebookUser {
 	    @Column(length = 100)
 	    private String email;
 
+	    
 	    @Column(length = 100)
 	    @NotBlank(message = "phoneNumber is mandatory")
 	    private String phoneNumber;
+	    
+	    @Lob
+	    @Column(name = "profile_image", columnDefinition = "MEDIUMBLOB")
+	    private byte[] profileImage;
+	    
+	    @Column(name = "contact_active")
+	    private boolean contactActive = true;
 
 
 	    @CreationTimestamp

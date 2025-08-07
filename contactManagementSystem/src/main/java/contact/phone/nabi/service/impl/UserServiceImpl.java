@@ -1,5 +1,6 @@
 package contact.phone.nabi.service.impl;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -7,7 +8,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import contact.phone.nabi.repository.OtpLogRepo;
 import contact.phone.nabi.repository.PhonebookUserRepository;
@@ -275,25 +276,38 @@ public class UserServiceImpl implements UserService {
     }
 
   
-    public PhonebookUser saveUserIfActive(PhoneBookRequest request) {
+    public PhonebookUser saveUserIfActive(PhoneBookRequest request, MultipartFile imageFile) {
         String userId = request.getUserId();
-        Boolean userStatus = userRepository.findUserStatusByUserId(userId);
 
-        if (!Boolean.TRUE.equals(userStatus)) {
+        Boolean isActive = userRepository.findUserStatusByUserId(userId);
+        if (!Boolean.TRUE.equals(isActive)) {
             throw new IllegalStateException("User is INACTIVE or not found in the system");
         }
 
-        boolean phoneExists = phonebookUserRepository.existsByPhoneNumber(request.getPhoneNumber());
-        if (phoneExists) {
+        boolean isPhoneAlreadyUsed = phonebookUserRepository.existsByPhoneNumber(request.getPhoneNumber());
+        if (isPhoneAlreadyUsed) {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
         PhonebookUser user = new PhonebookUser();
-        user.setUserId(request.getUserId());
+        user.setUserId(userId);
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                byte[] imageBytes = imageFile.getBytes();
+                user.setProfileImage(imageBytes);
+
+                // Optional: Log or validate image type/size
+                 System.out.println("Image uploaded: " + imageFile.getOriginalFilename());
+
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read uploaded image", e);
+            }
+        }
 
         return phonebookUserRepository.save(user);
     }

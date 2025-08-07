@@ -40,6 +40,8 @@ import contact.phone.nabi.user.response.model.UserRegistrationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+
+
 @RestController
 @RequestMapping("/api/users")
 public class UserRegistrationController {
@@ -138,50 +140,29 @@ public class UserRegistrationController {
     }
 
     
-    @PostMapping("/phone/no/register")
-    public ResponseEntity<?> phoneNoRegister(@Valid @RequestBody PhoneBookRequest request) {
+
+    
+    @PostMapping(value = "/phone/no/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> phoneNoRegister(
+            @RequestPart("data") @Valid PhoneBookRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
-            PhonebookUser savedUser = userService.saveUserIfActive(request);
+            PhonebookUser savedUser = userService.saveUserIfActive(request, imageFile);
 
-            List<Result> result = List.of(new Result("Phone Number Save Successfully"));
-
-            CustomResponse response = new CustomResponse(
-                    result,
-                    "N",
-                    "N",
-                    200,
-                    "success"
-            );
+            List<Result> result = List.of(new Result("Phone Number and Image Saved Successfully"));
+            CustomResponse response = new CustomResponse(result, "N", "N", 200, "success");
 
             return ResponseEntity.ok(List.of(response));
         } catch (IllegalArgumentException ex) {
-          
-            List<Result> result = List.of(new Result("Unable to save. Phone number is already linked to another user"));
-
-            CustomResponse response = new CustomResponse(
-                    result,
-                    "Y",
-                    ex.getMessage(),  
-                    400,
-                    "error"
-            );
-
+            List<Result> result = List.of(new Result("Unable to save. Phone number already exists"));
+            CustomResponse response = new CustomResponse(result, "Y", ex.getMessage(), 400, "error");
             return ResponseEntity.badRequest().body(List.of(response));
         } catch (IllegalStateException ex) {
-            List<Result> result = List.of(new Result("User is inactive or not found. Cannot proceed with registration."));
-            CustomResponse response = new CustomResponse(
-                    result,
-                    "Y",
-                    ex.getMessage(), 
-                    400,
-                    "error"
-            );
-
+            List<Result> result = List.of(new Result("User is inactive or not found"));
+            CustomResponse response = new CustomResponse(result, "Y", ex.getMessage(), 400, "error");
             return ResponseEntity.badRequest().body(List.of(response));
         }
     }
-
-
 
 
 }

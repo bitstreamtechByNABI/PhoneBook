@@ -12,7 +12,12 @@ import contact.phone.nabi.user.model.PhonebookUser;
 
 public interface CommanRepo extends JpaRepository<PhonebookUser, Long> {
 	
-	 @Query("SELECT u.email, u.firstName, u.lastName, u.phoneNumber FROM PhonebookUser u WHERE u.userId = :userId")
-	    List<Object[]> findUserDetailsByUserId(@Param("userId") String userId);
+	@Query("SELECT u.email, u.firstName, u.lastName, u.phoneNumber, u.profileImage " +
+		       "FROM PhonebookUser u " +
+		       "WHERE u.userId = :userId AND u.contactActive = true")
+		List<Object[]> findUserDetailsByUserId(@Param("userId") String userId);
+
+
+
 
 }

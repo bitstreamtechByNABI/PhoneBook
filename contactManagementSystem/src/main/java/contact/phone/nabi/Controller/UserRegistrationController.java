@@ -46,6 +46,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/users")
 public class UserRegistrationController {
 	
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(UserRegistrationController.class); 
 
 	@Autowired
@@ -147,7 +148,8 @@ public class UserRegistrationController {
             @RequestPart("data") @Valid PhoneBookRequest request,
             @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
-            PhonebookUser savedUser = userService.saveUserIfActive(request, imageFile);
+            @SuppressWarnings("unused")
+			PhonebookUser savedUser = userService.saveUserIfActive(request, imageFile);
 
             List<Result> result = List.of(new Result("Phone Number and Image Saved Successfully"));
             CustomResponse response = new CustomResponse(result, "N", "N", 200, "success");

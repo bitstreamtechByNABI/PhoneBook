@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,7 +26,10 @@ import contact.phone.nabi.user.model.Notebook.NotebookEntryRequest;
 import contact.phone.nabi.user.model.Notebook.dto.NotebookResponseDTO;
 
 @Service
+
 public class NotebookService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(NotebookService.class); 
 	
 	    @Autowired
 	    private UserRepository userRepository;
@@ -32,26 +37,34 @@ public class NotebookService {
 	    @Autowired
 	    private NotebookRepository notebookRepository;
 	    
-	    
+
 	    public NotebookEntry createNotebook(NotebookEntryRequest request) {
 	        String userId = request.getUserId();
-	       	        // 1. Check if user exists
+	        logger.info("Creating notebook entry for userId: {}", userId);
+
+	        // 1. Check if user exists
 	        if (!userRepository.existsByUserId(userId)) {
+	            logger.warn("User not found: {}", userId);
 	            throw new NotebookCreationException("User not found", null);
 	        }
 
 	        String status = userRepository.findUserStatusByUserIdStr(userId);
+	        logger.debug("User status for {}: {}", userId, status);
 
 	        if ("0".equalsIgnoreCase(status)) {
+	            logger.warn("User is deactive: {}", userId);
 	            throw new NotebookCreationException("User is deactive", null);
 	        }
 
 	        boolean exists = notebookRepository.findByUserIdAndNoteBookNameIgnoreCase(userId, request.getNoteBookName()).isPresent();
 	        if (exists) {
+	            logger.warn("Notebook name '{}' already exists for user {}", request.getNoteBookName(), userId);
 	            throw new NotebookCreationException("Notebook name already exists for this user", null);
 	        }
 
 	        String encryptedContent = EncryptionUtil.encrypt(request.getNoteBookContent());
+	        logger.debug("Notebook content encrypted for user {}", userId);
+
 	        NotebookEntry entry = new NotebookEntry();
 	        entry.setUserId(userId);
 	        entry.setNoteStatus(request.getNoteStatus());
@@ -60,7 +73,10 @@ public class NotebookService {
 	        entry.setCreateDate(LocalDateTime.now());
 	        entry.setUpdateDate(LocalDateTime.now());
 
-	        return notebookRepository.save(entry);
+	        NotebookEntry savedEntry = notebookRepository.save(entry);
+	        logger.info("Notebook entry saved successfully for userId: {}, notebookName: {}", userId, request.getNoteBookName());
+
+	        return savedEntry;
 	    }
 
 

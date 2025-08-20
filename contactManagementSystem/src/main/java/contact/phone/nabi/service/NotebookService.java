@@ -184,4 +184,10 @@ public class NotebookService {
 	    }
 
 
+
+		public List<NotebookEntry> getNotesByNoteBookName(String noteBookName) {
+			return notebookRepository.findNotesByNoteBookName(noteBookName);
+		}
+
+
 }

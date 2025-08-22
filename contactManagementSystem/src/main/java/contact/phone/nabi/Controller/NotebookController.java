@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +40,24 @@ public class NotebookController {
 	        return ResponseEntity.status(HttpStatus.OK)
 	                .body(new NotedBookResponse(responseData, 200, "Notebook created successfully"));
 	    }
-	  
+//	  
+	/*
+	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<NotedBookResponse> createNotedBook(
+	        @RequestPart("data") NotebookEntryRequest request,
+	        @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
+
+	    NotebookEntry entry = notebookService.createNotebook(request, file);
+
+	    Map<String, Object> responseData = new HashMap<>();
+	    responseData.put("noteBookName", entry.getNoteBookName());
+
+	    return ResponseEntity.ok(
+	            new NotedBookResponse(responseData, 200, "Notebook created successfully")
+	    );
+	}
+*/
+
 	  
 	  @GetMapping("/noted/get")
 	  public ResponseEntity<NotebookListResponse> getNotebooks(

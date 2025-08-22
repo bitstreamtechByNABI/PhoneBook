@@ -1,5 +1,6 @@
 package contact.phone.nabi.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import contact.phone.nabi.cipher.EncryptionUtil;
 import contact.phone.nabi.exception.NotebookCreationException;
@@ -37,7 +39,7 @@ public class NotebookService {
 	    @Autowired
 	    private NotebookRepository notebookRepository;
 	    
-
+/*
 	    public NotebookEntry createNotebook(NotebookEntryRequest request) {
 	        String userId = request.getUserId();
 	        logger.info("Creating notebook entry for userId: {}", userId);
@@ -79,8 +81,111 @@ public class NotebookService {
 	        return savedEntry;
 	    }
 
+*/
+	    
+	    
+	    public NotebookEntry createNotebook(NotebookEntryRequest request) {
+	        String userId = request.getUserId();
+	        logger.info("Creating notebook entry for userId: {}", userId);
 
+	        // 1. Check if user exists
+	        if (!userRepository.existsByUserId(userId)) {
+	            logger.warn("User not found: {}", userId);
+	            throw new NotebookCreationException("User not found", null);
+	        }
 
+	        String status = userRepository.findUserStatusByUserIdStr(userId);
+	        logger.debug("User status for {}: {}", userId, status);
+
+	        if ("0".equalsIgnoreCase(status)) {
+	            logger.warn("User is deactive: {}", userId);
+	            throw new NotebookCreationException("User is deactive", null);
+	        }
+
+	        // 2. Check if notebook with same name exists
+	        boolean exists = notebookRepository
+	                .findByUserIdAndNoteBookNameIgnoreCase(userId, request.getNoteBookName())
+	                .isPresent();
+	        if (exists) {
+	            logger.warn("Notebook name '{}' already exists for user {}", request.getNoteBookName(), userId);
+	            throw new NotebookCreationException("Notebook name already exists for this user", null);
+	        }
+
+	        // 3. Encrypt content
+	        String encryptedContent = EncryptionUtil.encrypt(request.getNoteBookContent());
+	        logger.debug("Notebook content encrypted for user {}", userId);
+
+	        NotebookEntry entry = new NotebookEntry();
+	        entry.setUserId(userId);
+	        entry.setNoteStatus(request.getNoteStatus());
+	        entry.setNoteBookName(request.getNoteBookName());
+	        entry.setNoteBookContent(encryptedContent);
+
+	        // 4. Handle optional attachment
+	        if (request.getAttachmentBase64() != null && !request.getAttachmentBase64().isEmpty()) {
+	            try {
+	                byte[] fileBytes = java.util.Base64.getDecoder().decode(request.getAttachmentBase64());
+	                entry.setAttachment(fileBytes);
+	                entry.setAttachmentName(request.getAttachmentFileName());
+	                entry.setAttachmentType(request.getAttachmentFileType());
+	                logger.info("Attachment processed successfully for notebook '{}'", request.getNoteBookName());
+	            } catch (IllegalArgumentException e) {
+	                logger.error("Invalid Base64 attachment for user {}: {}", userId, e.getMessage());
+	                throw new NotebookCreationException("Invalid attachment Base64 data", e);
+	            }
+	        } else {
+	            logger.debug("No attachment provided for notebook '{}'", request.getNoteBookName());
+	        }
+
+	        NotebookEntry savedEntry = notebookRepository.save(entry);
+	        logger.info("Notebook entry saved successfully for userId: {}, notebookName: {}", userId, request.getNoteBookName());
+
+	        return savedEntry;
+	    }
+
+	    
+	    
+	    /*
+	    public NotebookEntry createNotebook(NotebookEntryRequest request, MultipartFile file) {
+	        String userId = request.getUserId();
+
+	        if (!userRepository.existsByUserId(userId)) {
+	            throw new RuntimeException("User not found");
+	        }
+
+	        String status = userRepository.findUserStatusByUserIdStr(userId);
+	        if ("0".equalsIgnoreCase(status)) {
+	            throw new RuntimeException("User is deactive");
+	        }
+
+	        boolean exists = notebookRepository.findByUserIdAndNoteBookNameIgnoreCase(userId, request.getNoteBookName())
+	                .isPresent();
+	        if (exists) {
+	            throw new RuntimeException("Notebook name already exists for this user");
+	        }
+
+	        String encryptedContent = EncryptionUtil.encrypt(request.getNoteBookContent());
+
+	        NotebookEntry entry = new NotebookEntry();
+	        entry.setUserId(userId);
+	        entry.setNoteStatus(request.getNoteStatus());
+	        entry.setNoteBookName(request.getNoteBookName());
+	        entry.setNoteBookContent(encryptedContent);
+
+	        // Handle optional file
+	        if (file != null && !file.isEmpty()) {
+	            try {
+	                entry.setAttachment(file.getBytes());
+	                entry.setAttachmentName(file.getOriginalFilename());
+	                entry.setAttachmentType(file.getContentType());
+	            } catch (IOException e) {
+	                throw new RuntimeException("Failed to process uploaded file", e);
+	            }
+	        }
+
+	        return notebookRepository.save(entry);
+	    }
+*/
 	    public Page<NotebookResponseDTO> getNotebooks(String userId, String noteBookName, Integer id, int page, int size) {
 	        Pageable pageable = PageRequest.of(page, size, Sort.by("createDate").descending());
 	        Page<NotebookEntry> resultPage;

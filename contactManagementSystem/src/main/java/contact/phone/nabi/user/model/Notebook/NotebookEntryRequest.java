@@ -9,16 +9,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotebookEntryRequest {
-	
+
 	@NotBlank
 	private String userId;
-    private String noteStatus;
-    @NotBlank
-    private String noteBookName;
-    private String noteBookContent;
-    
-    
-    
-
+	private String noteStatus;
+	@NotBlank
+	private String noteBookName;
+	private String noteBookContent;
+	private String attachmentBase64;
+	private String attachmentFileName;
+	private String attachmentFileType;
 
 }

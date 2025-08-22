@@ -30,6 +30,11 @@ public class NotebookEntry {
     private String noteBookName;
     @Lob
     private String noteBookContent;
+    @Lob
+    private byte[] attachment;
+    private String attachmentName;
+    private String attachmentType;
+
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
     

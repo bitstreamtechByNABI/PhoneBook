@@ -191,16 +191,12 @@ public class NotebookService {
 	        Page<NotebookEntry> resultPage;
 
 	        if (userId != null && !userId.isEmpty()) {
-	            boolean userExists = userRepository.existsByUserId(userId);
-	            if (!userExists) {
+	            if (!isUserExists(userId)) {
 	                throw new NotebookFetchException("Notebook fetch failed: User does not exist", null);
 	            }
-
-	            Boolean status = userRepository.findUserStatusByUserId(userId);
-	            if (status == null || !status) {
+	            if (!isUserActive(userId)) {
 	                throw new NotebookFetchException("Notebook fetch failed: User is inactive", null);
 	            }
-
 	            resultPage = notebookRepository.findByUserId(userId, pageable);
 	        } else if (noteBookName != null && !noteBookName.isEmpty()) {
 	            resultPage = notebookRepository.findByNoteBookNameContainingIgnoreCase(noteBookName, pageable);
@@ -215,25 +211,28 @@ public class NotebookService {
 	            resultPage = notebookRepository.findAll(pageable);
 	        }
 
-	        // 🔐 Decrypt + Filter + Map to DTO
 	        List<NotebookResponseDTO> activeNoteDTOs = resultPage.getContent().stream()
-	            .filter(entry -> "ACTIVE".equalsIgnoreCase(entry.getNoteStatus()))
-	            .map(entry -> {
-	                String decryptedContent;
-	                try {
-	                    decryptedContent = EncryptionUtil.decrypt(entry.getNoteBookContent());
-	                } catch (Exception e) {
-	                    decryptedContent = "**Decryption Failed**";
-	                }
+	                .filter(entry -> "ACTIVE".equalsIgnoreCase(entry.getNoteStatus()))
+	                .map((NotebookEntry entry) -> {
+	                    String decryptedContent;
+	                    try {
+	                        decryptedContent = EncryptionUtil.decrypt(entry.getNoteBookContent());
+	                    } catch (Exception e) {
+	                        decryptedContent = "**Decryption Failed**";
+	                    }
 
-	                return new NotebookResponseDTO(
-	                    entry.getUserId(),
-	                    entry.getNoteStatus(),
-	                    entry.getNoteBookName(),
-	                    decryptedContent
-	                );
-	            })
-	            .collect(Collectors.toList());
+	                    return new NotebookResponseDTO(
+	                            entry.getUserId(),
+	                            entry.getNoteStatus(),
+	                            entry.getNoteBookName(),
+	                            decryptedContent,
+	                            entry.getAttachment() != null ? entry.getAttachment() : new byte[0],
+	                            entry.getAttachmentName(),
+	                            entry.getAttachmentType()
+	                    );
+	                })
+
+	                .collect(Collectors.toList());
 
 	        return new PageImpl<>(activeNoteDTOs, pageable, activeNoteDTOs.size());
 	    }
@@ -282,7 +281,7 @@ public class NotebookService {
 	                    entry.getUserId(),
 	                    entry.getNoteStatus(),
 	                    entry.getNoteBookName(),
-	                    decryptedContent
+	                    decryptedContent, null, decryptedContent, decryptedContent
 	                );
 	            })
 	            .collect(Collectors.toList());

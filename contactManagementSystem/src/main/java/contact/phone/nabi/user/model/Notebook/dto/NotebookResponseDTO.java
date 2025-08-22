@@ -13,4 +13,8 @@ public class NotebookResponseDTO {
 	private String noteStatus;
 	private String noteBookName;
 	private String noteBookContent;
+	private byte[] attachment;
+	private String attachmentName;
+	private String attachmentType;
+
 }
